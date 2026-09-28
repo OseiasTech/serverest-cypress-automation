@@ -1,5 +1,5 @@
-import { gerarAdministrador, gerarUsuario } from '../../support/factories/usuario.factory'
-import { gerarProduto } from '../../support/factories/produto.factory'
+import { gerarAdministrador, gerarUsuario } from '../../../support/factories/usuario.factory'
+import { gerarProduto } from '../../../support/factories/produto.factory'
 
 describe('API - Produtos', () => {
   const administrador = gerarAdministrador()

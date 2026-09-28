@@ -1,7 +1,7 @@
-import homePage from '../../support/pages/home.page'
-import listaComprasPage from '../../support/pages/lista-compras.page'
-import { gerarAdministrador, gerarUsuario } from '../../support/factories/usuario.factory'
-import { gerarProduto } from '../../support/factories/produto.factory'
+import homePage from '../../../support/pages/home.page'
+import listaComprasPage from '../../../support/pages/lista-compras.page'
+import { gerarAdministrador, gerarUsuario } from '../../../support/factories/usuario.factory'
+import { gerarProduto } from '../../../support/factories/produto.factory'
 
 describe('Frontend - Lista de compras', () => {
   const administrador = gerarAdministrador()

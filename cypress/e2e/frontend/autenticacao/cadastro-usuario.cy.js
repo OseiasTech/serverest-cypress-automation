@@ -1,6 +1,6 @@
-import cadastroUsuarioPage from '../../support/pages/cadastro-usuario.page'
-import homePage from '../../support/pages/home.page'
-import { gerarUsuario } from '../../support/factories/usuario.factory'
+import cadastroUsuarioPage from '../../../support/pages/cadastro-usuario.page'
+import homePage from '../../../support/pages/home.page'
+import { gerarUsuario } from '../../../support/factories/usuario.factory'
 
 describe('Frontend - Cadastro de usuário', () => {
   let mensagens

@@ -1,6 +1,6 @@
-import loginPage from '../../support/pages/login.page'
-import homePage from '../../support/pages/home.page'
-import { gerarUsuario } from '../../support/factories/usuario.factory'
+import loginPage from '../../../support/pages/login.page'
+import homePage from '../../../support/pages/home.page'
+import { gerarUsuario } from '../../../support/factories/usuario.factory'
 
 describe('Frontend - Login', () => {
   const usuario = gerarUsuario()

@@ -1,4 +1,4 @@
-import { gerarUsuario } from '../../support/factories/usuario.factory'
+import { gerarUsuario } from '../../../support/factories/usuario.factory'
 
 describe('API - Login', () => {
   const usuario = gerarUsuario()
