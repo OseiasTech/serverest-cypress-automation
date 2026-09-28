@@ -24,6 +24,15 @@ Cypress.Commands.add('apiBuscarUsuario', (id, options = {}) =>
   }),
 )
 
+Cypress.Commands.add('apiEditarUsuario', (id, usuario, options = {}) =>
+  cy.request({
+    method: 'PUT',
+    url: `${apiUrl()}/usuarios/${id}`,
+    body: usuario,
+    ...options,
+  }),
+)
+
 Cypress.Commands.add('apiExcluirUsuario', (id, options = {}) =>
   cy.request({
     method: 'DELETE',
@@ -59,10 +68,55 @@ Cypress.Commands.add('apiBuscarProduto', (id, options = {}) =>
   }),
 )
 
+Cypress.Commands.add('apiListarProdutos', (filtros = {}, options = {}) =>
+  cy.request({
+    method: 'GET',
+    url: `${apiUrl()}/produtos`,
+    qs: filtros,
+    ...options,
+  }),
+)
+
 Cypress.Commands.add('apiExcluirProduto', (id, token, options = {}) =>
   cy.request({
     method: 'DELETE',
     url: `${apiUrl()}/produtos/${id}`,
+    headers: autorizacao(token),
+    ...options,
+  }),
+)
+
+Cypress.Commands.add('apiCadastrarCarrinho', (produtos, token, options = {}) =>
+  cy.request({
+    method: 'POST',
+    url: `${apiUrl()}/carrinhos`,
+    headers: autorizacao(token),
+    body: { produtos },
+    ...options,
+  }),
+)
+
+Cypress.Commands.add('apiBuscarCarrinho', (id, options = {}) =>
+  cy.request({
+    method: 'GET',
+    url: `${apiUrl()}/carrinhos/${id}`,
+    ...options,
+  }),
+)
+
+Cypress.Commands.add('apiConcluirCompra', (token, options = {}) =>
+  cy.request({
+    method: 'DELETE',
+    url: `${apiUrl()}/carrinhos/concluir-compra`,
+    headers: autorizacao(token),
+    ...options,
+  }),
+)
+
+Cypress.Commands.add('apiCancelarCompra', (token, options = {}) =>
+  cy.request({
+    method: 'DELETE',
+    url: `${apiUrl()}/carrinhos/cancelar-compra`,
     headers: autorizacao(token),
     ...options,
   }),
