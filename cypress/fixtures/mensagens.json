@@ -1,0 +1,10 @@
+{
+  "cadastroSucesso": "Cadastro realizado com sucesso",
+  "emailEmUso": "Este email já está sendo usado",
+  "loginSucesso": "Login realizado com sucesso",
+  "loginInvalido": "Email e/ou senha inválidos",
+  "exclusaoSucesso": "Registro excluído com sucesso",
+  "produtoDuplicado": "Já existe produto com esse nome",
+  "rotaAdmin": "Rota exclusiva para administradores",
+  "tokenInvalido": "Token de acesso ausente, inválido, expirado ou usuário do token não existe mais"
+}
