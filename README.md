@@ -77,6 +77,7 @@ O arquivo [BUGS.txt](BUGS.txt) reúne os bugs encontrados durante a automação,
 ## Pré-requisitos
 
 - Node.js 20+
+- Google Chrome (os scripts rodam com `--browser chrome`, pois o Electron está depreciado no Cypress)
 - npm
 
 ## Como executar

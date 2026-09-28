@@ -4,10 +4,10 @@
   "description": "Testes E2E (frontend) e de API da aplicação ServeRest com Cypress",
   "private": true,
   "scripts": {
-    "cy:open": "cypress open",
-    "test": "cypress run",
-    "test:api": "cypress run --spec \"cypress/e2e/api/**/*.cy.js\"",
-    "test:frontend": "cypress run --spec \"cypress/e2e/frontend/**/*.cy.js\"",
+    "cy:open": "cypress open --e2e --browser chrome",
+    "test": "cypress run --browser chrome",
+    "test:api": "cypress run --browser chrome --spec \"cypress/e2e/api/**/*.cy.js\"",
+    "test:frontend": "cypress run --browser chrome --spec \"cypress/e2e/frontend/**/*.cy.js\"",
     "lint": "eslint ."
   },
   "keywords": [
