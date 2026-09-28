@@ -1,0 +1,43 @@
+name: Cypress Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run lint
+
+  cypress:
+    needs: lint
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [api, frontend]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Executar testes (${{ matrix.suite }})
+        uses: cypress-io/github-action@v6
+        with:
+          browser: chrome
+          spec: cypress/e2e/${{ matrix.suite }}/**/*.cy.js
+
+      - name: Publicar screenshots de falhas
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots-${{ matrix.suite }}
+          path: cypress/screenshots
+          if-no-files-found: ignore
