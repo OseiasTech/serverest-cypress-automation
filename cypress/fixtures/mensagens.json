@@ -1,10 +1,12 @@
 {
   "cadastroSucesso": "Cadastro realizado com sucesso",
+  "alteracaoSucesso": "Registro alterado com sucesso",
   "emailEmUso": "Este email já está sendo usado",
   "loginSucesso": "Login realizado com sucesso",
   "loginInvalido": "Email e/ou senha inválidos",
   "exclusaoSucesso": "Registro excluído com sucesso",
   "produtoDuplicado": "Já existe produto com esse nome",
   "rotaAdmin": "Rota exclusiva para administradores",
-  "tokenInvalido": "Token de acesso ausente, inválido, expirado ou usuário do token não existe mais"
+  "compraCancelada": "Registro excluído com sucesso. Estoque dos produtos reabastecido",
+  "nenhumProdutoEncontrado": "Nenhum produto foi encontrado"
 }

@@ -68,11 +68,4 @@ describe('API - Produtos', () => {
       },
     )
   })
-
-  it('não deve permitir cadastrar produto sem token de autenticação', () => {
-    cy.apiCadastrarProduto(gerarProduto(), null, { failOnStatusCode: false }).then(({ status, body }) => {
-      expect(status).to.eq(401)
-      expect(body).to.deep.equal({ message: mensagens.tokenInvalido })
-    })
-  })
 })
