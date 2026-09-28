@@ -4,6 +4,8 @@ class HomePage {
     campoPesquisa: () => cy.get('[data-testid="pesquisar"]'),
     botaoPesquisar: () => cy.get('[data-testid="botaoPesquisar"]'),
     cardProduto: (nome) => cy.contains('.card', nome),
+    cardsProduto: () => cy.get('.card'),
+    mensagemSemResultado: () => cy.contains('p', 'Nenhum produto foi encontrado'),
     botaoLogout: () => cy.get('[data-testid="logout"]'),
   }
 
