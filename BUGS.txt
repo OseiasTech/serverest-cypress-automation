@@ -1,0 +1,273 @@
+===============================================================================
+ RELATÓRIO DE BUGS - SERVEREST
+===============================================================================
+ Frontend : https://front.serverest.dev
+ API      : https://serverest.dev
+ Data     : 28/09/2026
+ Autor    : Oseias Gomes
+
+ Todos os itens abaixo foram reproduzidos durante a automação (requisições à
+ API e execução no navegador via Cypress). Observação: a ServeRest é uma
+ aplicação de estudo, então parte destes comportamentos pode ser intencional.
+ Mesmo assim, eles estão registrados como seriam em um produto real.
+
+ Formato: cada bug descreve em Gherkin (BDD, pt-BR) o comportamento ESPERADO.
+ O cenário falha na aplicação atual, e o "Resultado obtido" mostra o que
+ acontece de fato.
+
+ Severidade: CRÍTICA > ALTA > MÉDIA > BAIXA
+
+===============================================================================
+ BACKEND (API)
+===============================================================================
+
+# language: pt
+Funcionalidade: API ServeRest
+
+  # [BE-01] Senha dos usuários retornada em texto puro pela API
+  # Severidade: CRÍTICA | Endpoint: GET /usuarios e GET /usuarios/{_id}
+  Cenário: Consulta de usuário não expõe a senha
+    Dado que existe um usuário cadastrado via POST /usuarios
+    Quando eu consulto GET /usuarios/{_id} desse usuário
+    Então o status da resposta deve ser 200
+    E a resposta não deve conter o campo "password"
+  # Resultado obtido: a resposta traz "password": "<senha em texto puro>".
+  #                   A senha também é armazenada sem hash.
+
+  # [BE-02] Listagem de usuários acessível sem autenticação
+  # Severidade: CRÍTICA | Endpoint: GET /usuarios
+  Cenário: Listar usuários exige autenticação
+    Dado que não tenho um token de autenticação
+    Quando eu envio GET /usuarios sem o header Authorization
+    Então o status da resposta deve ser 401
+  # Resultado obtido: 200 com todos os usuários (e-mail, senha e perfil de
+  #                   administrador). Junto com o BE-01, qualquer pessoa
+  #                   consegue as credenciais de todas as contas.
+
+  # [BE-03] Alteração e exclusão de qualquer usuário sem autenticação
+  # Severidade: CRÍTICA | Endpoint: PUT /usuarios/{_id} e DELETE /usuarios/{_id}
+  Cenário: Alterar outro usuário sem token é negado
+    Dado que existe um usuário comum cadastrado
+    E que não tenho um token de autenticação
+    Quando eu envio PUT /usuarios/{_id} desse usuário com "password" "nova" e "administrador" "true"
+    Então o status da resposta deve ser 401
+    E a senha e o perfil do usuário devem permanecer inalterados
+
+  Cenário: Excluir outro usuário sem token é negado
+    Dado que existe um usuário comum cadastrado
+    E que não tenho um token de autenticação
+    Quando eu envio DELETE /usuarios/{_id} desse usuário
+    Então o status da resposta deve ser 401
+    E o usuário deve continuar cadastrado
+  # Resultado obtido: 200 nos dois casos. A senha da vítima é trocada e ela
+  #                   vira administradora (confirmado com GET
+  #                   /usuarios/{_id}). O DELETE remove o usuário.
+
+  # [BE-04] Qualquer pessoa pode se cadastrar como administrador
+  # Severidade: ALTA | Endpoint: POST /usuarios e PUT /usuarios/{_id inexistente}
+  Esquema do Cenário: Criar administrador exige um administrador autenticado
+    Dado que não tenho um token de autenticação
+    Quando eu envio <metodo> <rota> com "administrador" "true"
+    Então o status da resposta deve ser 401
+    E nenhum usuário administrador deve ser criado
+
+    Exemplos:
+      | metodo | rota                               |
+      | POST   | /usuarios                          |
+      | PUT    | /usuarios/{_id que não existe}     |
+  # Resultado obtido: 201 "Cadastro realizado com sucesso" com perfil de admin
+  #                   (o PUT para id inexistente cria o registro).
+
+  # [BE-05] Token JWT carrega a senha do usuário no payload
+  # Severidade: ALTA | Endpoint: POST /login
+  Cenário: Token de autenticação não contém dados sensíveis
+    Dado que existe um usuário cadastrado
+    Quando eu faço login via POST /login com credenciais válidas
+    E decodifico o payload do token retornado em "authorization"
+    Então o payload não deve conter o campo "password"
+  # Resultado obtido: {"email":"...","password":"<senha em texto puro>",
+  #                   "iat":...,"exp":...}. O payload do JWT é só
+  #                   codificado em Base64, não criptografado.
+
+  # [BE-06] Não há política mínima de senha
+  # Severidade: MÉDIA | Endpoint: POST /usuarios
+  Cenário: Cadastro recusa senha fraca
+    Quando eu envio POST /usuarios com "password" "1"
+    Então o status da resposta deve ser 400
+    E a mensagem deve informar a regra mínima de senha
+  # Resultado obtido: 201 "Cadastro realizado com sucesso".
+
+  # [BE-07] Nome composto só de espaços é aceito (usuário e produto)
+  # Severidade: MÉDIA | Endpoint: POST /usuarios e POST /produtos
+  Esquema do Cenário: Nome em branco é recusado
+    Dado que estou autenticado como administrador
+    Quando eu envio POST <rota> com "nome" "   "
+    Então o status da resposta deve ser 400
+    E a mensagem deve informar que o nome não pode ficar em branco
+
+    Exemplos:
+      | rota      |
+      | /usuarios |
+      | /produtos |
+  # Resultado obtido: 201 "Cadastro realizado com sucesso" nas duas rotas.
+
+  # [BE-08] E-mail tratado como sensível a maiúsculas/minúsculas
+  # Severidade: MÉDIA | Endpoint: POST /usuarios e POST /login
+  Cenário: E-mail com letras maiúsculas é considerado o mesmo e-mail
+    Dado que existe um usuário cadastrado com e-mail "adm@qa.com"
+    Quando eu envio POST /usuarios com e-mail "ADM@QA.COM"
+    Então o status da resposta deve ser 400
+    E a mensagem deve ser "Este email já está sendo usado"
+
+  Cenário: Login ignora maiúsculas/minúsculas no e-mail
+    Dado que existe um usuário cadastrado com e-mail "adm@qa.com"
+    Quando eu faço login com e-mail "ADM@QA.COM" e a senha correta
+    Então o status da resposta deve ser 200
+  # Resultado obtido: o cadastro cria uma segunda conta com o "mesmo" e-mail
+  #                   (201) e o login retorna 401 "Email e/ou senha inválidos".
+
+  # [BE-09] Nome de produto duplicado aceito ao variar maiúsculas/minúsculas
+  # Severidade: BAIXA | Endpoint: POST /produtos
+  Cenário: Produto com nome já existente em outra caixa é recusado
+    Dado que estou autenticado como administrador
+    E que existe um produto cadastrado com nome "CASE123"
+    Quando eu envio POST /produtos com nome "case123"
+    Então o status da resposta deve ser 400
+    E a mensagem deve ser "Já existe produto com esse nome"
+  # Resultado obtido: 201 "Cadastro realizado com sucesso".
+
+  # [BE-10] Preço do produto não aceita centavos
+  # Severidade: MÉDIA | Endpoint: POST /produtos
+  Cenário: Cadastro de produto com preço decimal
+    Dado que estou autenticado como administrador
+    Quando eu envio POST /produtos com "preco" 10.5
+    Então o status da resposta deve ser 201
+  # Resultado obtido: 400 "preco deve ser um inteiro".
+
+  # [BE-11] DELETE de registro inexistente retorna 200
+  # Severidade: BAIXA | Endpoint: DELETE /usuarios/{_id}
+  Cenário: Excluir usuário inexistente
+    Dado que não existe usuário com _id "zzzzzzzzzzzzzzzz"
+    Quando eu envio DELETE /usuarios/zzzzzzzzzzzzzzzz
+    Então o status da resposta deve ser 404
+  # Resultado obtido: 200 "Nenhum registro excluído".
+
+===============================================================================
+ FRONTEND
+===============================================================================
+
+# language: pt
+Funcionalidade: Frontend ServeRest
+
+  # [FE-01] Frontend baixa a lista completa de usuários (com senhas) após o login
+  # Severidade: CRÍTICA | Tela: /login
+  Cenário: Login não carrega dados de outros usuários
+    Dado que estou na página de login
+    E que existe um usuário comum cadastrado
+    Quando eu faço login com as credenciais desse usuário
+    Então o navegador não deve fazer requisição a GET /usuarios sem filtro
+    E nenhum dado de outros usuários deve ser recebido
+  # Resultado obtido: o front chama GET /usuarios, recebe todos os usuários
+  #                   com senha em texto puro e procura o e-mail logado no
+  #                   navegador para decidir entre /home e /admin/home.
+  #                   Visível em DevTools > Network.
+
+  # [FE-02] Usuário comum acessa as telas administrativas
+  # Severidade: ALTA | Tela: /admin/*
+  Esquema do Cenário: Usuário comum não acessa área administrativa
+    Dado que estou logado como usuário comum
+    Quando eu acesso a URL <rota>
+    Então devo ser redirecionado para "/home"
+    E o menu de administrador não deve ser exibido
+
+    Exemplos:
+      | rota                     |
+      | /admin/home              |
+      | /admin/cadastrarprodutos |
+  # Resultado obtido: a tela e o menu de administrador aparecem normalmente.
+  #                   O bloqueio só acontece ao enviar o formulário, quando a
+  #                   API responde 403 "Rota exclusiva para administradores".
+
+  # [FE-03] Lista de compras permite quantidade maior que o estoque
+  # Severidade: ALTA | Tela: /minhaListaDeProdutos
+  Cenário: Quantidade na lista limitada ao estoque
+    Dado que estou logado como usuário comum
+    E que existe um produto com estoque 2
+    E que adicionei esse produto à lista de compras
+    Quando eu clico no botão "+" 4 vezes
+    Então a quantidade exibida deve ser "Total: 2"
+    E deve ser exibido um aviso de estoque insuficiente
+  # Resultado obtido: a quantidade chega a "Total: 6" e o preço total é
+  #                   recalculado como se houvesse estoque.
+
+  # [FE-04] Carrinho não implementado
+  # Severidade: ALTA | Tela: /carrinho
+  Cenário: Adicionar produtos da lista ao carrinho
+    Dado que estou logado como usuário comum
+    E que tenho um produto na lista de compras
+    Quando eu clico em "Adicionar no carrinho"
+    Então devo ver o carrinho com o produto adicionado
+    E deve existir a opção de finalizar a compra
+  # Resultado obtido: página com a mensagem "Em construção aguarde". Não é
+  #                   possível concluir o fluxo de compra.
+
+  # [FE-05] Pesquisa de produtos diferencia maiúsculas de minúsculas
+  # Severidade: MÉDIA | Tela: /home
+  Cenário: Pesquisa ignora maiúsculas e minúsculas
+    Dado que estou logado como usuário comum
+    E que existe um produto chamado "Produto Cypress 123"
+    Quando eu pesquiso por "produto cypress 123"
+    Então o produto "Produto Cypress 123" deve ser exibido nos resultados
+  # Resultado obtido: "Nenhum produto foi encontrado".
+
+  # [FE-06] Saudação da home do administrador com espaço duplo / nome vazio
+  # Severidade: BAIXA | Tela: /admin/home
+  Cenário: Saudação exibe o nome do administrador corretamente
+    Dado que estou logado como administrador com nome "Maria"
+    Quando eu acesso a home do administrador
+    Então devo ver o texto "Bem-vindo, Maria"
+  # Resultado obtido: "Bem Vindo  Maria" (dois espaços). Para usuário comum
+  #                   na área de admin (FE-02) aparece só "Bem Vindo  ".
+
+  # [FE-07] Mensagem de validação em inglês no cadastro de usuário
+  # Severidade: BAIXA | Tela: /cadastrarusuarios
+  Cenário: Mensagens de campo obrigatório em português
+    Dado que estou na página de cadastro de usuário
+    Quando eu clico em "Cadastrar" com o formulário vazio
+    Então devo ver as mensagens:
+      | Nome é obrigatório  |
+      | Email é obrigatório |
+      | Senha é obrigatória |
+  # Resultado obtido: "Password é obrigatório", misturando inglês e português
+  #                   (o front repassa a chave do campo da API).
+
+  # [FE-08] Formulários sem validação no navegador (campos sem "required")
+  # Severidade: BAIXA | Tela: /login e /cadastrarusuarios
+  Esquema do Cenário: Campos vazios são validados antes de chamar a API
+    Dado que estou na página <pagina>
+    Quando eu clico em <botao> com os campos vazios
+    Então devo ver um aviso de campo obrigatório no próprio formulário
+    E nenhuma requisição deve ser enviada para a API
+
+    Exemplos:
+      | pagina             | botao       |
+      | /login             | "Entrar"    |
+      | /cadastrarusuarios | "Cadastrar" |
+  # Resultado obtido: nenhum campo tem o atributo "required". A requisição
+  #                   vazia vai para a API e só depois o erro aparece.
+
+  # [FE-09] Erro de digitação no data-testid do botão de cadastro de produto
+  # Severidade: BAIXA (qualidade/testabilidade) | Tela: /admin/cadastrarprodutos
+  Cenário: Botão de cadastro de produto segue o padrão de data-testid
+    Dado que estou logado como administrador
+    Quando eu acesso a página de cadastro de produtos
+    Então o botão "Cadastrar" deve ter data-testid "cadastrarProdutos"
+  # Resultado obtido: data-testid="cadastarProdutos" (falta o "r"). Isso
+  #                   causa erro em quem automatiza pelo padrão de nomenclatura.
+
+===============================================================================
+ RESUMO
+===============================================================================
+ Backend : 11 bugs  (3 críticos, 2 altos, 4 médios, 2 baixos)
+ Frontend:  9 bugs  (1 crítico, 3 altos, 1 médio, 4 baixos)
+===============================================================================
