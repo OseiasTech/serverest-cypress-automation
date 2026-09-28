@@ -1,0 +1,31 @@
+{
+  "name": "serverest-cypress-automation",
+  "version": "1.0.0",
+  "description": "Testes E2E (frontend) e de API da aplicação ServeRest com Cypress",
+  "private": true,
+  "scripts": {
+    "cy:open": "cypress open",
+    "test": "cypress run",
+    "test:api": "cypress run --spec \"cypress/e2e/api/**/*.cy.js\"",
+    "test:frontend": "cypress run --spec \"cypress/e2e/frontend/**/*.cy.js\"",
+    "lint": "eslint ."
+  },
+  "keywords": [
+    "cypress",
+    "e2e",
+    "api",
+    "serverest"
+  ],
+  "author": "Oseias Gomes",
+  "license": "MIT",
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "cypress": "^16.1.0",
+    "eslint": "^10.11.0",
+    "eslint-plugin-cypress": "^7.0.2",
+    "globals": "^17.12.0"
+  },
+  "allowScripts": {
+    "cypress@16.1.0": true
+  }
+}
